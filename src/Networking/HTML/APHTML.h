@@ -1,0 +1,121 @@
+#pragma once
+#include <pgmspace.h>
+
+const char change_network[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Or Setup Network</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+</head>
+
+<style>
+    body {
+        background-image: linear-gradient(179deg, rgba(0, 0, 0, 1) 9.2%, rgba(127, 16, 16, 1) 103.9%);
+        color: antiquewhite;
+    }
+
+    <!--spinner-->
+
+    .lds-dual-ring {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+    }
+
+    .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 32px;
+        height: 32px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        border-color: #fff transparent #fff transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+    }
+
+    @keyframes lds-dual-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<body>
+    <div class="d-flex flex-column align-items-center justify-content-center vh-100 vw-100">
+        <h1 class="mb-5 display-4 fw-bold">Choose your network</h1>
+        <form class="d-flex flex-column" action="/" method="post" id="form">
+            <div class="d-flex gap-3 mb-2 align-items-center w-100">
+                <label class="form-label w-25 h6 text-end" for="networks">Network:</label>
+                <select class="form-select w-75" name="networks" id="networks">
+                    <!--Add here networks from wifi scan-->
+                </select>
+            </div>
+            <div class="d-flex gap-3 mb-2 align-items-center w-100">
+                <label class="form-label w-25 h6 text-end" for="password">Password:</label>
+                <input class="form-control w-75" type="password" name="password" id="password" />
+            </div>
+            <div class="form-element align-self-end d-flex align-items-center justify-content-center">
+                <div class="lds-dual-ring d-none" id="loading"></div>
+                <button class="btn btn-danger" type="submit">Change</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function (e) {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/get-networks",
+                success: function (data) {
+                    var length = data.length;
+                    for (var x = 0; x < length; x++)
+                        $("#networks").append($('<option>', {
+                            value: data.values[x],
+                            text: data.values[x]
+                        }));
+                }
+            })
+        });
+
+        $("form").submit(function (e) {
+            e.preventDefault();
+            $("#loading").removeClass("d-none");
+            $.ajax({
+                url: "/",
+                type: "POST",
+                data: { networks: $("#networks").val(), password: $("#password").val() },
+                dataType: "json",
+                success: function (data) {
+                    $("#loading").addClass("d-none");
+
+                    if (data.success === false)
+                        alert("Login was unsuccesful, try once more");
+                    else
+                        window.location.replace(data.url);
+                },
+                error: () => $("#loading").addClass("d-none")
+            });
+        });
+    </script>
+</body>
+
+</html>
+)rawliteral";
